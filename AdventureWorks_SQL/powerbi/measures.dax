@@ -1,0 +1,18 @@
+-- Build these as separate measures in Power BI; not executable as a single SQL query.
+-- Order-grain metrics must be computed on fact_orders to avoid line-level duplication.
+Total Revenue = SUM ( fact_orders[SubTotal] )
+Total Orders = DISTINCTCOUNT ( fact_orders[SalesOrderID] )
+Unique Customers = DISTINCTCOUNT ( fact_orders[CustomerID] )
+Average Order Value = DIVIDE ( [Total Revenue], [Total Orders] )
+Units Sold = SUM ( fact_lines[OrderQty] )
+Product Line Revenue = SUM ( fact_lines[LineTotal] )
+Previous Year Revenue = CALCULATE ( [Total Revenue], SAMEPERIODLASTYEAR ( dim_date[Date] ) )
+YoY Revenue % = DIVIDE ( [Total Revenue] - [Previous Year Revenue], [Previous Year Revenue] )
+Revenue Share % = DIVIDE ( [Total Revenue], CALCULATE ( [Total Revenue], ALL ( dim_territories ) ) )
+-- Date table: create as a calculated table and Mark as date table on [Date].
+dim_date = CALENDAR ( MIN ( fact_orders[OrderDate] ), MAX ( fact_orders[OrderDate] ) )
+-- Calculated columns on dim_date:
+Year = YEAR ( dim_date[Date] )
+Month Number = MONTH ( dim_date[Date] )
+Month Name = FORMAT ( dim_date[Date], "MMM" )
+Year Month = FORMAT ( dim_date[Date], "YYYY-MM" )
